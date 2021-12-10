@@ -1,15 +1,7 @@
-cbor-js
+CBOR.js
 =======
 
-The Concise Binary Object Representation (CBOR) data format ([RFC 7049](http://tools.ietf.org/html/rfc7049)) implemented in pure JavaScript.
-
-[![Build Status](https://api.travis-ci.org/paroga/cbor-js.svg)](https://travis-ci.org/paroga/cbor-js)
-[![Coverage Status](https://coveralls.io/repos/paroga/cbor-js/badge.svg?branch=master)](https://coveralls.io/r/paroga/cbor-js?branch=master)
-[![Dependency status](https://david-dm.org/paroga/cbor-js/status.svg)](https://david-dm.org/paroga/cbor-js#info=dependencies&view=table)
-[![Dev Dependency Status](https://david-dm.org/paroga/cbor-js/dev-status.svg)](https://david-dm.org/paroga/cbor-js#info=devDependencies&view=table)
-[![Selenium Test Status](https://saucelabs.com/buildstatus/paroga-cbor-js)](https://saucelabs.com/u/paroga-cbor-js)
-
-[![Selenium Test Status](https://saucelabs.com/browser-matrix/paroga-cbor-js.svg)](https://saucelabs.com/u/paroga-cbor-js)
+The Concise Binary Object Representation (CBOR) data format ([RFC 7049](http://tools.ietf.org/html/rfc7049)) implemented in pure JavaScript (ES Module).
 
 API
 ---
@@ -25,16 +17,13 @@ CBOR.**encode**(*data*)
 Usage
 -----
 
-Include `cbor.js` in your or HTML page:
-```html
-<script src="path/to/cbor.js" type="text/javascript"></script>
-```
+Include `CBOR.js` in your or HTML page:
+```js
+import { CBOR } from "./CBOR.js";
 
-Then you can use it via the `CBOR`-object in your code:
-```javascript
-var initial = { Hello: "World" };
-var encoded = CBOR.encode(initial);
-var decoded = CBOR.decode(encoded);
+const initial = { Hello: "World" };
+const encoded = CBOR.encode(initial);
+const decoded = CBOR.decode(encoded);
 ```
 After running this example `initial` and `decoded` represent the same value.
 
@@ -42,11 +31,11 @@ After running this example `initial` and `decoded` represent the same value.
 
 The API was designed to play well with the `WebSocket` object in the browser:
 ```javascript
-var websocket = new WebSocket(url);
+const websocket = new WebSocket(url);
 websocket.binaryType = "arraybuffer";
 ...
-websocket.onmessage = function(event) {
-  var message = CBOR.decode(event.data);
+websocket.onmessage = (event) => {
+  const message = CBOR.decode(event.data);
 };
 ...
 websocket.send(CBOR.encode(message));

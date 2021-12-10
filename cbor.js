@@ -22,28 +22,27 @@
  * SOFTWARE.
  */
 
-(function(global, undefined) { "use strict";
-var POW_2_24 = 5.960464477539063e-8,
+const POW_2_24 = 5.960464477539063e-8,
     POW_2_32 = 4294967296,
     POW_2_53 = 9007199254740992;
 
 function encode(value) {
-  var data = new ArrayBuffer(256);
-  var dataView = new DataView(data);
-  var lastLength;
-  var offset = 0;
+  let data = new ArrayBuffer(256);
+  let dataView = new DataView(data);
+  let lastLength;
+  let offset = 0;
 
   function prepareWrite(length) {
-    var newByteLength = data.byteLength;
-    var requiredLength = offset + length;
+    let newByteLength = data.byteLength;
+    const requiredLength = offset + length;
     while (newByteLength < requiredLength)
       newByteLength <<= 1;
     if (newByteLength !== data.byteLength) {
-      var oldDataView = dataView;
+      const oldDataView = dataView;
       data = new ArrayBuffer(newByteLength);
       dataView = new DataView(data);
-      var uint32count = (offset + 3) >> 2;
-      for (var i = 0; i < uint32count; ++i)
+      const uint32count = (offset + 3) >> 2;
+      for (let i = 0; i < uint32count; ++i)
         dataView.setUint32(i << 2, oldDataView.getUint32(i << 2));
     }
 
@@ -60,8 +59,8 @@ function encode(value) {
     commitWrite(prepareWrite(1).setUint8(offset, value));
   }
   function writeUint8Array(value) {
-    var dataView = prepareWrite(value.length);
-    for (var i = 0; i < value.length; ++i)
+    const dataView = prepareWrite(value.length);
+    for (let i = 0; i < value.length; ++i)
       dataView.setUint8(offset + i, value[i]);
     commitWrite();
   }
@@ -72,9 +71,9 @@ function encode(value) {
     commitWrite(prepareWrite(4).setUint32(offset, value));
   }
   function writeUint64(value) {
-    var low = value % POW_2_32;
-    var high = (value - low) / POW_2_32;
-    var dataView = prepareWrite(8);
+    const low = value % POW_2_32;
+    const high = (value - low) / POW_2_32;
+    const dataView = prepareWrite(8);
     dataView.setUint32(offset, high);
     dataView.setUint32(offset + 4, low);
     commitWrite();
@@ -98,7 +97,7 @@ function encode(value) {
   }
 
   function encodeItem(value) {
-    var i;
+    let i;
 
     if (value === false)
       return writeUint8(0xf4);
@@ -121,9 +120,9 @@ function encode(value) {
         return writeFloat64(value);
 
       case "string":
-        var utf8data = [];
+        const utf8data = [];
         for (i = 0; i < value.length; ++i) {
-          var charCode = value.charCodeAt(i);
+          let charCode = value.charCodeAt(i);
           if (charCode < 0x80) {
             utf8data.push(charCode);
           } else if (charCode < 0x800) {
@@ -149,7 +148,7 @@ function encode(value) {
         return writeUint8Array(utf8data);
 
       default:
-        var length;
+        let length;
         if (Array.isArray(value)) {
           length = value.length;
           writeTypeAndLength(4, length);
@@ -159,11 +158,11 @@ function encode(value) {
           writeTypeAndLength(2, value.length);
           writeUint8Array(value);
         } else {
-          var keys = Object.keys(value);
+          const keys = Object.keys(value);
           length = keys.length;
           writeTypeAndLength(5, length);
           for (i = 0; i < length; ++i) {
-            var key = keys[i];
+            const key = keys[i];
             encodeItem(key);
             encodeItem(value[key]);
           }
@@ -176,16 +175,16 @@ function encode(value) {
   if ("slice" in data)
     return data.slice(0, offset);
 
-  var ret = new ArrayBuffer(offset);
-  var retView = new DataView(ret);
-  for (var i = 0; i < offset; ++i)
+  const ret = new ArrayBuffer(offset);
+  const retView = new DataView(ret);
+  for (let i = 0; i < offset; ++i)
     retView.setUint8(i, dataView.getUint8(i));
   return ret;
 }
 
 function decode(data, tagger, simpleValue) {
-  var dataView = new DataView(data);
-  var offset = 0;
+  const dataView = new DataView(data);
+  let offset = 0;
 
   if (typeof tagger !== "function")
     tagger = function(value) { return value; };
@@ -200,13 +199,13 @@ function decode(data, tagger, simpleValue) {
     return commitRead(length, new Uint8Array(data, offset, length));
   }
   function readFloat16() {
-    var tempArrayBuffer = new ArrayBuffer(4);
-    var tempDataView = new DataView(tempArrayBuffer);
-    var value = readUint16();
+    const tempArrayBuffer = new ArrayBuffer(4);
+    const tempDataView = new DataView(tempArrayBuffer);
+    const value = readUint16();
 
-    var sign = value & 0x8000;
-    var exponent = value & 0x7c00;
-    var fraction = value & 0x03ff;
+    const sign = value & 0x8000;
+    let exponent = value & 0x7c00;
+    const fraction = value & 0x03ff;
 
     if (exponent === 0x7c00)
       exponent = 0xff << 10;
@@ -258,18 +257,18 @@ function decode(data, tagger, simpleValue) {
     throw "Invalid length encoding";
   }
   function readIndefiniteStringLength(majorType) {
-    var initialByte = readUint8();
+    const initialByte = readUint8();
     if (initialByte === 0xff)
       return -1;
-    var length = readLength(initialByte & 0x1f);
+    const length = readLength(initialByte & 0x1f);
     if (length < 0 || (initialByte >> 5) !== majorType)
       throw "Invalid indefinite length element";
     return length;
   }
 
   function appendUtf16Data(utf16data, length) {
-    for (var i = 0; i < length; ++i) {
-      var value = readUint8();
+    for (let i = 0; i < length; ++i) {
+      let value = readUint8();
       if (value & 0x80) {
         if (value < 0xe0) {
           value = (value & 0x1f) <<  6
@@ -300,11 +299,11 @@ function decode(data, tagger, simpleValue) {
   }
 
   function decodeItem() {
-    var initialByte = readUint8();
-    var majorType = initialByte >> 5;
-    var additionalInformation = initialByte & 0x1f;
-    var i;
-    var length;
+    const initialByte = readUint8();
+    const majorType = initialByte >> 5;
+    const additionalInformation = initialByte & 0x1f;
+    let i;
+    let length;
 
     if (majorType === 7) {
       switch (additionalInformation) {
@@ -328,14 +327,14 @@ function decode(data, tagger, simpleValue) {
         return -1 - length;
       case 2:
         if (length < 0) {
-          var elements = [];
-          var fullArrayLength = 0;
+          const elements = [];
+          let fullArrayLength = 0;
           while ((length = readIndefiniteStringLength(majorType)) >= 0) {
             fullArrayLength += length;
             elements.push(readArrayBuffer(length));
           }
-          var fullArray = new Uint8Array(fullArrayLength);
-          var fullArrayOffset = 0;
+          const fullArray = new Uint8Array(fullArrayLength);
+          let fullArrayOffset = 0;
           for (i = 0; i < elements.length; ++i) {
             fullArray.set(elements[i], fullArrayOffset);
             fullArrayOffset += elements[i].length;
@@ -344,7 +343,7 @@ function decode(data, tagger, simpleValue) {
         }
         return readArrayBuffer(length);
       case 3:
-        var utf16data = [];
+        const utf16data = [];
         if (length < 0) {
           while ((length = readIndefiniteStringLength(majorType)) >= 0)
             appendUtf16Data(utf16data, length);
@@ -352,7 +351,7 @@ function decode(data, tagger, simpleValue) {
           appendUtf16Data(utf16data, length);
         return String.fromCharCode.apply(null, utf16data);
       case 4:
-        var retArray;
+        let retArray;
         if (length < 0) {
           retArray = [];
           while (!readBreak())
@@ -364,9 +363,9 @@ function decode(data, tagger, simpleValue) {
         }
         return retArray;
       case 5:
-        var retObject = {};
+        const retObject = {};
         for (i = 0; i < length || length < 0 && !readBreak(); ++i) {
-          var key = decodeItem();
+          const key = decodeItem();
           retObject[key] = decodeItem();
         }
         return retObject;
@@ -388,19 +387,10 @@ function decode(data, tagger, simpleValue) {
     }
   }
 
-  var ret = decodeItem();
+  const ret = decodeItem();
   if (offset !== data.byteLength)
     throw "Remaining bytes";
   return ret;
 }
 
-var obj = { encode: encode, decode: decode };
-
-if (typeof define === "function" && define.amd)
-  define("cbor/cbor", obj);
-else if (typeof module !== "undefined" && module.exports)
-  module.exports = obj;
-else if (!global.CBOR)
-  global.CBOR = obj;
-
-})(this);
+export const CBOR = { encode: encode, decode: decode };

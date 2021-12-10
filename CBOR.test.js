@@ -1,8 +1,11 @@
-var testcases = function(undefined) {
+import * as t from "https://deno.land/std/testing/asserts.ts";
+import { CBOR } from "../CBOR.js";
+
+const testcases = function(undefined) {
   function generateArrayBuffer(data) {
-    var ret = new ArrayBuffer(data.length);
-    var uintArray = new Uint8Array(ret);
-    for (var i = 0; i < data.length; ++i) {
+    const ret = new ArrayBuffer(data.length);
+    const uintArray = new Uint8Array(ret);
+    for (let i = 0; i < data.length; ++i) {
       uintArray[i] = data[i];
     }
     return new Uint8Array(data);  
@@ -384,10 +387,22 @@ var testcases = function(undefined) {
     ] ];
 }();
 
+const deepEqual = (actual, expected, text) => {
+  if (actual === expected) {
+    t.assert(true, text);
+    return;
+  }
+  t.assertEquals(actual, expected, text);
+};
+const equal = deepEqual;
+const ok = (b, text) => {
+  t.assert(b, text);
+};
+
 function myDeepEqual(actual, expected, text) {
   if (actual instanceof Uint8Array && expected instanceof Uint8Array) {
-    var bufferMatch = actual.length === expected.length;
-    for (var i = 0; i < actual.length; ++i) {
+    let bufferMatch = actual.length === expected.length;
+    for (let i = 0; i < actual.length; ++i) {
       bufferMatch = bufferMatch && actual[i] === expected[i];
     }
     if (bufferMatch)
@@ -398,45 +413,45 @@ function myDeepEqual(actual, expected, text) {
 }
 
 function hex2arrayBuffer(data) {
-  var length = data.length / 2;
-  var ret = new Uint8Array(length);
-  for (var i = 0; i < length; ++i) {
+  const length = data.length / 2;
+  const ret = new Uint8Array(length);
+  for (let i = 0; i < length; ++i) {
     ret[i] = parseInt(data.substr(i * 2, 2), 16);
   }
   return ret.buffer;
 }
 
 testcases.forEach(function(testcase) {
-  var name = testcase[0];
-  var data = testcase[1];
-  var expected = testcase[2];
-  var binaryDifference = testcase[3];
+  const name = testcase[0];
+  const data = testcase[1];
+  const expected = testcase[2];
+  const binaryDifference = testcase[3];
 
-  test(name, function() {
+  Deno.test(name, function() {
     myDeepEqual(CBOR.decode(hex2arrayBuffer(data)), expected, "Decoding");
-    var encoded = CBOR.encode(expected);
+    const encoded = CBOR.encode(expected);
     myDeepEqual(CBOR.decode(encoded), expected, "Encoding (deepEqual)");
     if (!binaryDifference) {
-      var hex = "";
-      var uint8Array = new Uint8Array(encoded);
-      for (var i = 0; i < uint8Array.length; ++i)
+      let hex = "";
+      const uint8Array = new Uint8Array(encoded);
+      for (let i = 0; i < uint8Array.length; ++i)
         hex += (uint8Array[i] < 0x10 ? "0" : "") + uint8Array[i].toString(16);
       equal(hex, data, "Encoding (byteMatch)");
     }
   });
 });
 
-test("Big Array", function() {
-  var value = new Array(0x10001);
-  for (var i = 0; i < value.length; ++i)
+Deno.test("Big Array", function() {
+  const value = new Array(0x10001);
+  for (let i = 0; i < value.length; ++i)
     value[i] = i;
   deepEqual(CBOR.decode(CBOR.encode(value)), value, 'deepEqual')
 });
 
-test("Remaining Bytes", function() {
-  var threw = false;
+Deno.test("Remaining Bytes", function() {
+  let threw = false;
   try {
-    var arrayBuffer = new ArrayBuffer(2);
+    const arrayBuffer = new ArrayBuffer(2);
     CBOR.decode(arrayBuffer)
   } catch (e) {
     threw = e;
@@ -445,8 +460,8 @@ test("Remaining Bytes", function() {
   ok(threw, "Thrown exception");
 });
 
-test("Invalid length encoding", function() {
-  var threw = false;
+Deno.test("Invalid length encoding", function() {
+  let threw = false;
   try {
     CBOR.decode(hex2arrayBuffer("1e"))
   } catch (e) {
@@ -456,8 +471,8 @@ test("Invalid length encoding", function() {
   ok(threw, "Thrown exception");
 });
 
-test("Invalid length", function() {
-  var threw = false;
+Deno.test("Invalid length", function() {
+  let threw = false;
   try {
     CBOR.decode(hex2arrayBuffer("1f"))
   } catch (e) {
@@ -467,8 +482,8 @@ test("Invalid length", function() {
   ok(threw, "Thrown exception");
 });
 
-test("Invalid indefinite length element type", function() {
-  var threw = false;
+Deno.test("Invalid indefinite length element type", function() {
+  let threw = false;
   try {
     CBOR.decode(hex2arrayBuffer("5f00"))
   } catch (e) {
@@ -478,8 +493,8 @@ test("Invalid indefinite length element type", function() {
   ok(threw, "Thrown exception");
 });
 
-test("Invalid indefinite length element length", function() {
-  var threw = false;
+Deno.test("Invalid indefinite length element length", function() {
+  let threw = false;
   try {
     CBOR.decode(hex2arrayBuffer("5f5f"))
   } catch (e) {
@@ -489,7 +504,7 @@ test("Invalid indefinite length element length", function() {
   ok(threw, "Thrown exception");
 });
 
-test("Tagging", function() {
+Deno.test("Tagging", function() {
   function TaggedValue(value, tag) {
     this.value = value;
     this.tag = tag;
@@ -498,8 +513,8 @@ test("Tagging", function() {
     this.value = value;
   }
 
-  var arrayBuffer = hex2arrayBuffer("83d81203d9456708f8f0");
-  var decoded = CBOR.decode(arrayBuffer, function(value, tag) {
+  const arrayBuffer = hex2arrayBuffer("83d81203d9456708f8f0");
+  const decoded = CBOR.decode(arrayBuffer, function(value, tag) {
     return new TaggedValue(value, tag);
   }, function(value) {
     return new SimpleValue(value);
