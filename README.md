@@ -19,7 +19,7 @@ Usage
 
 Include `CBOR.js` in your or HTML page:
 ```js
-import { CBOR } from "./CBOR.js";
+import { CBOR } from "https://code4fukui.github.io/CBOR/CBOR.js";
 
 const initial = { Hello: "World" };
 const encoded = CBOR.encode(initial);
