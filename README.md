@@ -1,4 +1,4 @@
-CBOR.js
+CBOR-es
 =======
 
 The Concise Binary Object Representation (CBOR) data format ([RFC 7049](http://tools.ietf.org/html/rfc7049)) implemented in pure JavaScript (ES Module).
@@ -19,7 +19,7 @@ Usage
 
 Include `CBOR.js` in your or HTML page:
 ```js
-import { CBOR } from "https://code4fukui.github.io/CBOR/CBOR.js";
+import { CBOR } from "https://code4fukui.github.io/CBOR-es/CBOR.js";
 
 const initial = { Hello: "World" };
 const encoded = CBOR.encode(initial);
