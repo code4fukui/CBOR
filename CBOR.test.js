@@ -1,5 +1,5 @@
 import * as t from "https://deno.land/std/testing/asserts.ts";
-import { CBOR } from "../CBOR.js";
+import { CBOR } from "./CBOR.js";
 
 const testcases = function(undefined) {
   function generateArrayBuffer(data) {
@@ -151,6 +151,22 @@ const testcases = function(undefined) {
       "String '\ud800\udd51' (U+10151)",
       "64f0908591",
       "\ud800\udd51"
+    ], [
+      "String 'あ'",
+      "63e38182",
+      "あ"
+    ], [
+      "String 'あいう'",
+      "69e38182e38184e38186",
+      "あいう"
+    ], [
+      "String 'Ｅ'",
+      "63efbca5",
+      "Ｅ" // XXＡＢＣＤ
+    ], [
+      "String 'ＥＢＰＭ'",
+      "6cefbca5efbca2efbcb0efbcad",
+      "ＥＢＰＭ" // XX
     ], [
       "String 'streaming'",
       "7f657374726561646d696e67ff",
@@ -412,13 +428,13 @@ function myDeepEqual(actual, expected, text) {
   return deepEqual(actual, expected, text);
 }
 
-function hex2arrayBuffer(data) {
+function hex2array(data) {
   const length = data.length / 2;
   const ret = new Uint8Array(length);
   for (let i = 0; i < length; ++i) {
     ret[i] = parseInt(data.substr(i * 2, 2), 16);
   }
-  return ret.buffer;
+  return ret;
 }
 
 testcases.forEach(function(testcase) {
@@ -428,7 +444,7 @@ testcases.forEach(function(testcase) {
   const binaryDifference = testcase[3];
 
   Deno.test(name, function() {
-    myDeepEqual(CBOR.decode(hex2arrayBuffer(data)), expected, "Decoding");
+    myDeepEqual(CBOR.decode(hex2array(data)), expected, "Decoding");
     const encoded = CBOR.encode(expected);
     myDeepEqual(CBOR.decode(encoded), expected, "Encoding (deepEqual)");
     if (!binaryDifference) {
@@ -463,7 +479,7 @@ Deno.test("Remaining Bytes", function() {
 Deno.test("Invalid length encoding", function() {
   let threw = false;
   try {
-    CBOR.decode(hex2arrayBuffer("1e"))
+    CBOR.decode(hex2array("1e"))
   } catch (e) {
     threw = e;
   }
@@ -474,7 +490,7 @@ Deno.test("Invalid length encoding", function() {
 Deno.test("Invalid length", function() {
   let threw = false;
   try {
-    CBOR.decode(hex2arrayBuffer("1f"))
+    CBOR.decode(hex2array("1f"))
   } catch (e) {
     threw = e;
   }
@@ -485,7 +501,7 @@ Deno.test("Invalid length", function() {
 Deno.test("Invalid indefinite length element type", function() {
   let threw = false;
   try {
-    CBOR.decode(hex2arrayBuffer("5f00"))
+    CBOR.decode(hex2array("5f00"))
   } catch (e) {
     threw = e;
   }
@@ -496,7 +512,7 @@ Deno.test("Invalid indefinite length element type", function() {
 Deno.test("Invalid indefinite length element length", function() {
   let threw = false;
   try {
-    CBOR.decode(hex2arrayBuffer("5f5f"))
+    CBOR.decode(hex2array("5f5f"))
   } catch (e) {
     threw = e;
   }
@@ -513,7 +529,7 @@ Deno.test("Tagging", function() {
     this.value = value;
   }
 
-  const arrayBuffer = hex2arrayBuffer("83d81203d9456708f8f0");
+  const arrayBuffer = hex2array("83d81203d9456708f8f0");
   const decoded = CBOR.decode(arrayBuffer, function(value, tag) {
     return new TaggedValue(value, tag);
   }, function(value) {

@@ -9,10 +9,10 @@ API
 The `CBOR`-object provides the following two functions:
 
 CBOR.**decode**(*data*)
-> Take the ArrayBuffer object *data* and return it decoded as a JavaScript object.
+> Take the Uint8Array object *data* and return it decoded as a JavaScript object.
 
 CBOR.**encode**(*data*)
-> Take the JavaScript object *data* and return it encoded as a ArrayBuffer object.
+> Take the JavaScript object *data* and return it encoded as a Uint8Array object.
 
 Usage
 -----
@@ -35,7 +35,7 @@ const websocket = new WebSocket(url);
 websocket.binaryType = "arraybuffer";
 ...
 websocket.onmessage = (event) => {
-  const message = CBOR.decode(event.data);
+  const message = CBOR.decode(new Uint8Array(event.data));
 };
 ...
 websocket.send(CBOR.encode(message));
