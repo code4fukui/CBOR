@@ -2,15 +2,6 @@ import * as t from "https://deno.land/std/testing/asserts.ts";
 import { CBOR } from "./CBOR.js";
 
 const testcases = function(undefined) {
-  function generateArrayBuffer(data) {
-    const ret = new ArrayBuffer(data.length);
-    const uintArray = new Uint8Array(ret);
-    for (let i = 0; i < data.length; ++i) {
-      uintArray[i] = data[i];
-    }
-    return new Uint8Array(data);  
-  }
-
   return [
     [
       "PositiveIntegerFix 0",
@@ -113,15 +104,17 @@ const testcases = function(undefined) {
     ], [
       "ByteString []",
       "40",
-      generateArrayBuffer([])
+      new Uint8Array([]),
+      true
     ], [
       "Bytestring [1,2,3,4]",
       "4401020304",
-      generateArrayBuffer([1,2,3,4])
+      new Uint8Array([1,2,3,4]),
+      true
     ], [
       "Bytestring [1,2,3,4,5]",
       "5f42010243030405ff",
-      generateArrayBuffer([1,2,3,4,5]),
+      new Uint8Array([1,2,3,4,5]),
       true
     ], [
       "String ''",

@@ -6,3 +6,11 @@ const encoded = CBOR.encode(initial);
 const decoded = CBOR.decode(encoded);
 
 console.log({ encoded }, { decoded });
+
+{
+  const initial = { Hello: new Uint8Array([1, 2, 3]) };
+  const encoded = CBOR.encode(initial);
+  const decoded = CBOR.decode(encoded);
+
+  console.log({ encoded }, { decoded });
+}

@@ -153,10 +153,9 @@ function encode(value) {
 
 function decode(data, tagger, simpleValue) {
   const dataByteLength = data.length;
-  data = data.buffer; // Uint8Array -> ArrayBuffer
-  const dataView = new DataView(data);
+  const dataView = new DataView(data.buffer, data.byteOffset, data.byteLength);
   let offset = 0;
-
+  
   if (typeof tagger !== "function")
     tagger = function(value) { return value; };
   if (typeof simpleValue !== "function")
@@ -167,7 +166,7 @@ function decode(data, tagger, simpleValue) {
     return value;
   }
   function readArrayBuffer(length) {
-    return commitRead(length, new Uint8Array(data, offset, length));
+    return commitRead(length, new Uint8Array(data.buffer, data.byteOffset + offset, length));
   }
   function readFloat16() {
     const tempArrayBuffer = new ArrayBuffer(4);
@@ -337,8 +336,9 @@ function decode(data, tagger, simpleValue) {
   }
 
   const ret = decodeItem();
-  if (offset !== dataByteLength)
-    throw "Remaining bytes";
+  if (offset !== dataByteLength) {
+    throw new Error("Remaining bytes: " + offset + " is not " + dataByteLength);
+  }
   return ret;
 }
 
