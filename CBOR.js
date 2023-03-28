@@ -151,7 +151,7 @@ function encode(value) {
   return new Uint8Array(data, 0, offset);
 }
 
-function decode(data, tagger, simpleValue) {
+function decode(data, tagger, simpleValue, decodeFirstFlag = false) {
   const dataByteLength = data.length;
   const dataView = new DataView(data.buffer, data.byteOffset, data.byteLength);
   let offset = 0;
@@ -336,10 +336,13 @@ function decode(data, tagger, simpleValue) {
   }
 
   const ret = decodeItem();
-  if (offset !== dataByteLength) {
+  if (offset !== dataByteLength && !decodeFirstFlag) {
     throw new Error("Remaining bytes: " + offset + " is not " + dataByteLength);
   }
   return ret;
 }
+function decodeFirst(data, tagger, simpleValue) {
+  return decode(data, tagger, simpleValue, true);
+}
 
-export const CBOR = { encode: encode, decode: decode };
+export const CBOR = { encode, decode, decodeFirst };

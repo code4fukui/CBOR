@@ -538,3 +538,14 @@ Deno.test("Tagging", function() {
   ok(decoded[2] instanceof SimpleValue, "third item is a SimpleValue");
   equal(decoded[2].value, 0xf0, "third item tag");
 });
+
+Deno.test("decodeFirst", function() {
+  const org = { a: 123, b: "abc" };
+  const encoded = CBOR.encode(org);
+  const bin = new Uint8Array(encoded.length * 2);
+  for (let i = 0; i < encoded.length; i++) {
+    bin[i] = encoded[i];
+  }
+  t.assertThrows(() => CBOR.decode(bin));
+  t.assertEquals(CBOR.decodeFirst(bin), org);
+});
